@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const { testConnection } = require('./config/database');
@@ -16,12 +18,46 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
+app.use(helmet()); 
 app.use(cors({
-  origin: 'https://time-tracker-git-qa-christians-projects-20c34dc2.vercel.app, https://time-tracker-lemon-three.vercel.app',
-  credentials: true
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://time-tracker-git-qa-christians-projects-20c34dc2.vercel.app',
+        'https://time-tracker-lemon-three.vercel.app'
+      ]
+    : ['http://localhost:4200', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '3mb' }));
+app.use(express.urlencoded({ extended: true, limit: '3mb' }));
+
+// Rate limiting general para toda la API
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 30, // 30 requests por ventana
+  message: { 
+    success: false, 
+    message: 'Too many requests, please try again later' 
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiting - Login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 3, // Solo 3 intentos de login
+  message: { 
+    success: false, 
+    message: 'Too many login attempts, please try again in 15 minutes' 
+  },
+  skipSuccessfulRequests: true,
+});
+
+// Aplicar rate limiting general
+app.use('/api/', generalLimiter);
 
 // Request logging middleware
 app.use((req, res, next) => {
