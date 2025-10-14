@@ -13,8 +13,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server'
+        url: 'https://attendance-backend-a2h0.onrender.com',
+        description: 'Production server'
       }
     ],
     components: {
