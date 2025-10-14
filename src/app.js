@@ -16,7 +16,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'https://time-tracker-git-qa-christians-projects-20c34dc2.vercel.app',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -62,6 +65,12 @@ app.use((err, req, res, next) => {
     message: MESSAGES.SERVER_ERROR,
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
+});
+
+app.get('/test-hash', async (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const hash = await bcrypt.hash('admin123', 10);
+  res.json({ hash });
 });
 
 // Start server
