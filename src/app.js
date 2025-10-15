@@ -35,8 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 // Rate limiting general para toda la API
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 30, // 30 requests por ventana
+  max: 100, // 100 requests por ventana
   message: { 
     success: false, 
     message: 'Too many requests, please try again later' 
@@ -48,7 +47,7 @@ const generalLimiter = rateLimit({
 // Rate limiting - Login
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 3, // Solo 3 intentos de login
+  max: 5, // Solo 5 intentos de login
   message: { 
     success: false, 
     message: 'Too many login attempts, please try again in 15 minutes' 
