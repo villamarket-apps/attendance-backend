@@ -1,4 +1,5 @@
 const PDFDocument = require('pdfkit');
+const moment = require('moment-timezone');
 
 /**
  * Generate payroll report PDF
@@ -44,7 +45,7 @@ function generatePayrollPDF(payrollData, startDate, endDate) {
   doc.fontSize(11)
      .font('Helvetica')
      .text(`Total de Horas Trabajadas: ${totalHours.toFixed(2)} horas`)
-     .text(`Total de Pago: $${totalPayment.toFixed(2)}`)
+     .text(`Total de Pago: S/${totalPayment.toFixed(2)}`)
      .moveDown(2);
 
   // Daily breakdown
@@ -153,7 +154,7 @@ function generatePayrollPDF(payrollData, startDate, endDate) {
      .font('Helvetica-Bold')
      .text(`TOTAL HORAS: ${totalHours.toFixed(2)}`, col3X, doc.y)
      .moveDown(0.3)
-     .text(`TOTAL DE PAGO: $${totalPayment.toFixed(2)}`, col3X, doc.y);
+     .text(`TOTAL DE PAGO: S/${totalPayment.toFixed(2)}`, col3X, doc.y);
 
   // Footer
   doc.moveDown(3);
@@ -168,30 +169,23 @@ function generatePayrollPDF(payrollData, startDate, endDate) {
  * Format date for display
  */
 function formatDate(dateString) {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${day}/${month}/${year}`;
+  return moment(dateString).tz('America/Lima').format('DD/MM/YYYY');
 }
 
 /**
  * Format time for display (HH:MM)
  */
 function formatTime(timestamp) {
-  const date = new Date(timestamp);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  return moment(timestamp).tz('America/Lima').format('HH:mm');
 }
 
 /**
  * Calculate hours between two timestamps
  */
 function calculateHoursBetween(start, end) {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  return (endDate - startDate) / (1000 * 60 * 60);
+  const startDate = moment(start).tz('America/Lima');
+  const endDate = moment(end).tz('America/Lima');
+  return endDate.diff(startDate, 'hours', true);
 }
 
 module.exports = {
