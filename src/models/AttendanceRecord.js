@@ -6,10 +6,10 @@ class AttendanceRecord {
   static async create(recordData) {
     try {
       const { employee_id, type, timestamp, notes = null } = recordData;
-      
+
       // Convert timestamp to MySQL format
       const mysqlTimestamp = toMySQLDateTime(timestamp);
-      
+
       const [result] = await pool.query(
         'INSERT INTO attendance_records (employee_id, type, timestamp, notes) VALUES (?, ?, ?, ?)',
         [employee_id, type, mysqlTimestamp, notes]
@@ -37,7 +37,11 @@ class AttendanceRecord {
   static async findByEmployeeId(employeeId) {
     try {
       const [rows] = await pool.query(
-        'SELECT * FROM attendance_records WHERE employee_id = ? ORDER BY timestamp DESC',
+        `SELECT ar.*, e.name as employee_name 
+       FROM attendance_records ar
+       JOIN employees e ON ar.employee_id = e.id
+       WHERE ar.employee_id = ? 
+       ORDER BY ar.timestamp DESC`,
         [employeeId]
       );
       return rows;
@@ -50,11 +54,13 @@ class AttendanceRecord {
   static async findByEmployeeAndDateRange(employeeId, startDate, endDate) {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM attendance_records 
-         WHERE employee_id = ? 
-         AND timestamp >= ? 
-         AND timestamp <= ?
-         ORDER BY timestamp ASC`,
+        `SELECT ar.*, e.name as employee_name 
+       FROM attendance_records ar
+       JOIN employees e ON ar.employee_id = e.id
+       WHERE ar.employee_id = ? 
+       AND ar.timestamp >= ? 
+       AND ar.timestamp <= ?
+       ORDER BY ar.timestamp ASC`,
         [employeeId, startDate, endDate]
       );
       return rows;
